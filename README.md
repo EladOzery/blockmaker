@@ -27,6 +27,17 @@
 >
 > hold RELOAD button and move your mouse to rotate the block
 
+## Changes in this fork (0.2.7)
+
+- Added a numeric building menu and improved block grabbing, duplication, deletion, rotation, and property editing.
+- Improved ray-traced block targeting and face-based snapping, including rotated blocks.
+- Added dedicated Small, Normal, Large, and X-Large models so visual size and collision bounds stay aligned.
+- Improved teleport placement, exit orientation, and momentum preservation.
+- Improved Honey and Trampoline behavior, cooldown handling, and movement-state cleanup.
+- Improved layout persistence at round end and builder-state handling after hot reloads.
+- Health blocks now heal without a red screen flash or heartbeat sound.
+- Updated defaults: Health `1`, Fire `1`, Damage `5`, Death `OnTop` enabled, and Honey `0.2`.
+
 ## Requirements
 
 - [MetaMod](https://github.com/alliedmodders/metamod-source)
