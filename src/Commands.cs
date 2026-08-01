@@ -215,7 +215,12 @@ public static class Commands
         {
             if (string.Equals(model.Title, selectType, StringComparison.OrdinalIgnoreCase))
             {
+                bool wasMoney = string.Equals(BuilderData[player.Slot].BlockType, blockModels.Money.Title, StringComparison.OrdinalIgnoreCase);
                 BuilderData[player.Slot].BlockType = model.Title;
+                if (string.Equals(model.Title, blockModels.Money.Title, StringComparison.OrdinalIgnoreCase))
+                    BuilderData[player.Slot].BlockTeam = "T";
+                else if (wasMoney)
+                    BuilderData[player.Slot].BlockTeam = "Both";
                 Utils.PrintToChat(player, $"Selected Type: {ChatColors.White}{model.Title}");
                 return;
             }

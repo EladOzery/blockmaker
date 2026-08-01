@@ -265,20 +265,21 @@ public partial class Blocks
         {
             { Models.Data.Bhop.Title, new Property { Duration = 0.25f, Cooldown = 1.0f } },
             { Models.Data.Health.Title, new Property { Value = 1.0f, Cooldown = 0.75f } },
-            { Models.Data.Grenade.Title, new Property { Cooldown = 60.0f } },
+            { Models.Data.Money.Title, new Property { Value = 3000.0f, Cooldown = -1.0f } },
+            { Models.Data.Grenade.Title, new Property { Cooldown = -1.0f } },
             { Models.Data.Gravity.Title, new Property { Duration = 4.0f, Value = 0.4f, Cooldown = 5.0f } },
-            { Models.Data.Frost.Title, new Property { Cooldown = 60.0f } },
-            { Models.Data.Flash.Title, new Property { Cooldown = 60.0f } },
+            { Models.Data.Frost.Title, new Property { Cooldown = -1.0f } },
+            { Models.Data.Flash.Title, new Property { Cooldown = -1.0f } },
             { Models.Data.Fire.Title, new Property { Duration = 5.0f, Value = 1.0f, Cooldown = 5.0f } },
             { Models.Data.Delay.Title, new Property { Duration = 1.0f, Cooldown = 1.5f } },
             { Models.Data.Damage.Title, new Property { Value = 5.0f, Cooldown = 0.75f } },
-            { Models.Data.Stealth.Title, new Property { Duration = 7.5f, Cooldown = 60.0f } },
-            { Models.Data.Speed.Title, new Property { Duration = 3.0f, Value = 2.0f, Cooldown = 60.0f } },
+            { Models.Data.Stealth.Title, new Property { Duration = 7.5f, Cooldown = -1.0f } },
+            { Models.Data.Speed.Title, new Property { Duration = 3.0f, Value = 2.0f, Cooldown = -1.0f } },
             { Models.Data.SpeedBoost.Title, new Property { Duration = 300.0f, Value = 650.0f } },
-            { Models.Data.Camouflage.Title, new Property { Duration = 10.0f, Cooldown = 60.0f } },
+            { Models.Data.Camouflage.Title, new Property { Duration = 10.0f, Cooldown = -1.0f } },
             { Models.Data.Slap.Title, new Property { Value = 2.0f } },
-            { Models.Data.Random.Title, new Property { Cooldown = 60f } },
-            { Models.Data.Invincibility.Title, new Property { Duration = 5.0f, Cooldown = 60.0f } },
+            { Models.Data.Random.Title, new Property { Cooldown = -1.0f } },
+            { Models.Data.Invincibility.Title, new Property { Duration = 5.0f, Cooldown = -1.0f } },
             { Models.Data.Trampoline.Title, new Property { Value = 500.0f } },
             { Models.Data.Death.Title, new Property { OnTop = true } },
             { Models.Data.Honey.Title, new Property { Value = 0.2f } },
@@ -287,11 +288,11 @@ public partial class Blocks
             { Models.Data.Ice.Title, new Property() },
             { Models.Data.Nuke.Title, new Property() },
             { Models.Data.Glass.Title, new Property() },
-            { Models.Data.Pistol.Title, new Property{  Value = 1f, Cooldown = 999f } },
-            { Models.Data.Rifle.Title, new Property{ Value = 1f, Cooldown = 999f } },
-            { Models.Data.Sniper.Title, new Property{ Value = 1f, Cooldown = 999f } },
-            { Models.Data.ShotgunHeavy.Title, new Property{ Value = 1f, Cooldown = 999f } },
-            { Models.Data.SMG.Title, new Property{ Value = 1f, Cooldown = 999f } },
+            { Models.Data.Pistol.Title, new Property{  Value = 1f, Cooldown = -1.0f } },
+            { Models.Data.Rifle.Title, new Property{ Value = 1f, Cooldown = -1.0f } },
+            { Models.Data.Sniper.Title, new Property{ Value = 1f, Cooldown = -1.0f } },
+            { Models.Data.ShotgunHeavy.Title, new Property{ Value = 1f, Cooldown = -1.0f } },
+            { Models.Data.SMG.Title, new Property{ Value = 1f, Cooldown = -1.0f } },
             { Models.Data.Barrier.Title, new Property{ Duration = 0.01f, Value = 0f, Cooldown = 2.0f } },
         };
 
@@ -326,6 +327,48 @@ public partial class Blocks
                 {
                     string jsonContent = File.ReadAllText(propertiesPath);
                     BlockProperties = JsonSerializer.Deserialize<Dictionary<string, Property>>(jsonContent) ?? new();
+
+                    bool defaultsChanged = false;
+                    foreach (var entry in BlockDefaultProperties)
+                        defaultsChanged |= BlockProperties.TryAdd(entry.Key, entry.Value);
+
+                    var legacyOncePerRoundCooldowns = new Dictionary<string, float>
+                    {
+                        [Models.Data.Money.Title] = 0.0f,
+                        [Models.Data.Grenade.Title] = 60.0f,
+                        [Models.Data.Frost.Title] = 60.0f,
+                        [Models.Data.Flash.Title] = 60.0f,
+                        [Models.Data.Stealth.Title] = 60.0f,
+                        [Models.Data.Speed.Title] = 60.0f,
+                        [Models.Data.Camouflage.Title] = 60.0f,
+                        [Models.Data.Random.Title] = 60.0f,
+                        [Models.Data.Invincibility.Title] = 60.0f,
+                        [Models.Data.Pistol.Title] = 999.0f,
+                        [Models.Data.Rifle.Title] = 999.0f,
+                        [Models.Data.Sniper.Title] = 999.0f,
+                        [Models.Data.ShotgunHeavy.Title] = 999.0f,
+                        [Models.Data.SMG.Title] = 999.0f,
+                    };
+
+                    foreach (var legacy in legacyOncePerRoundCooldowns)
+                    {
+                        if (BlockProperties.TryGetValue(legacy.Key, out var property) &&
+                            Math.Abs(property.Cooldown - legacy.Value) < 0.0001f)
+                        {
+                            property.Cooldown = -1.0f;
+                            defaultsChanged = true;
+                        }
+                    }
+
+                    if (defaultsChanged)
+                    {
+                        var options = new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                        };
+                        File.WriteAllText(propertiesPath, JsonSerializer.Serialize(BlockProperties, options));
+                    }
                 }
             }
         }

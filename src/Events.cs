@@ -98,6 +98,7 @@ public static class Events
     private static void OnClientDisconnectPost(int slot)
     {
         Blocks.ClearMovementEffectsForSlot(slot, false);
+        Blocks.RoundCooldowns.Remove(slot);
     }
 
     private static void OnServerPrecacheResources(ResourceManifest manifest)
@@ -205,7 +206,10 @@ public static class Events
             {
                 var input = info.ArgString.Replace("\"", "");
 
-                if (!float.TryParse(input, out float number) || (number <= 0 && type != "Snap"))
+                bool validNumber = float.TryParse(input, out float number);
+                bool allowedValue = validNumber &&
+                                    (number > 0 || type == "Snap" || (type == "Cooldown" && number == -1));
+                if (!allowedValue)
                 {
                     Utils.PrintToChat(player, $"{ChatColors.Red}Invalid input value: {ChatColors.White}{input}");
                     return HookResult.Handled;

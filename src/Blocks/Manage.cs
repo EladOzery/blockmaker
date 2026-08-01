@@ -302,7 +302,10 @@ public partial class Blocks
             return;
         }
 
-        if ((!float.TryParse(input, out float number) || number <= 0) && input != "Reset" && input != "OnTop" && input != "Locked")
+        bool isToggle = input == "Reset" || input == "OnTop" || input == "Locked";
+        bool validNumber = float.TryParse(input, out float number) &&
+                           (number > 0 || (type == "Cooldown" && number == -1));
+        if (!isToggle && !validNumber)
         {
             Utils.PrintToChat(player, $"{ChatColors.Red}Invalid input value: {ChatColors.White}{input}");
             return;

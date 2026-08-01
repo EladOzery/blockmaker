@@ -24,6 +24,7 @@ public partial class Blocks
             { blockModels.Bhop.Title, Action_BhopDelay },
             { blockModels.Gravity.Title, Action_Gravity },
             { blockModels.Health.Title, Action_Health },
+            { blockModels.Money.Title, Action_Money },
             { blockModels.Grenade.Title, Action_Nades },
             { blockModels.Frost.Title, Action_Nades },
             { blockModels.Flash.Title, Action_Nades },
@@ -61,6 +62,9 @@ public partial class Blocks
 
             if (!CooldownsTimers.ContainsKey(player.Slot))
                 CooldownsTimers[player.Slot] = new();
+
+            if (!RoundCooldowns.ContainsKey(player.Slot))
+                RoundCooldowns[player.Slot] = new();
 
             if (BlockCooldown(player, block.Entity) || TempTimers.Contains(block))
                 return;
@@ -106,6 +110,7 @@ public partial class Blocks
 
     public static Dictionary<int, List<CBaseProp>> PlayerCooldowns = new();
     public static Dictionary<int, List<Timer>> CooldownsTimers = new();
+    public static Dictionary<int, HashSet<CBaseProp>> RoundCooldowns = new();
     private const float TrampolineCooldownSeconds = 0.5f;
     private const float HoneyContactGraceSeconds = 0.1f;
     private const float MovementModifierTolerance = 0.0001f;
@@ -187,7 +192,16 @@ public partial class Blocks
 
     private static void BlockCooldownTimer(CCSPlayerController player, CBaseProp block, float timer = 0, bool message = false)
     {
-        if (timer <= 0 || block == null || block.Entity == null)
+        if (block == null || block.Entity == null)
+            return;
+
+        if (timer == -1)
+        {
+            RoundCooldowns[player.Slot].Add(block);
+            return;
+        }
+
+        if (timer <= 0)
             return;
 
         var cooldown = PlayerCooldowns[player.Slot];
@@ -212,7 +226,8 @@ public partial class Blocks
     }
     private static bool BlockCooldown(CCSPlayerController player, CBaseProp block)
     {
-        return PlayerCooldowns.TryGetValue(player.Slot, out var blockList) && blockList.Contains(block);
+        return (PlayerCooldowns.TryGetValue(player.Slot, out var blockList) && blockList.Contains(block)) ||
+               (RoundCooldowns.TryGetValue(player.Slot, out var roundBlocks) && roundBlocks.Contains(block));
     }
 
     private static void Action_Custom(CCSPlayerController player, Data data, CustomBlockModel customBlock)
@@ -365,6 +380,23 @@ public partial class Blocks
         player.Health((int)+settings.Value);
 
         BlockCooldownTimer(player, block, settings.Cooldown);
+    }
+
+    private static void Action_Money(CCSPlayerController player, Data data)
+    {
+        var money = player.InGameMoneyServices;
+        if (money == null)
+            return;
+
+        int award = Math.Max(0, (int)data.Properties.Value);
+        if (award == 0)
+            return;
+
+        money.Account = (int)Math.Min(int.MaxValue, (long)money.Account + award);
+        Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
+
+        Utils.PrintToChat(player, $"Awarded {ChatColors.Green}${award:N0}{ChatColors.Grey}");
+        BlockCooldownTimer(player, data.Entity, data.Properties.Cooldown);
     }
 
     private static void Action_Nades(CCSPlayerController player, Data data)

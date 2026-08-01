@@ -447,6 +447,7 @@ public static class Utils
 
         Blocks.PlayerCooldowns.Clear();
         Blocks.CooldownsTimers.Clear();
+        Blocks.RoundCooldowns.Clear();
         Blocks.TempTimers.Clear();
 
         Blocks.HiddenPlayers.Clear();
