@@ -37,6 +37,10 @@
 - Improved layout persistence at round end and builder-state handling after hot reloads.
 - Health blocks now heal without a red screen flash or heartbeat sound.
 - Updated defaults: Health `1`, Fire `1`, Damage `5`, Death `OnTop` enabled, and Honey `0.2`.
+- Added a Money block that defaults to Terrorists, awards `$3,000`, and exposes the award through the editable `Value` property.
+- Added `Cooldown = -1` for once-per-round block activation. The lock survives player death and resets when the next round starts.
+- Money, grenade, firearm, and temporary-perk blocks now default to once-per-round activation; Gravity retains its `5`-second cooldown.
+- Existing generated configuration files are extended and migrated when new built-in defaults are introduced.
 
 ## Requirements
 
@@ -58,6 +62,24 @@
 </details>
 
 ## Config
+
+### Block cooldowns
+
+Cooldowns are tracked per player and per block.
+
+| Value | Behavior |
+| --- | --- |
+| `> 0` | The block can be used again after this many seconds. |
+| `0` | No configured cooldown. The block may still have an internal safety delay. |
+| `-1` | The block can be activated once per round. Dying does not reset it. |
+
+The once-per-round default applies to Money, Grenade, Frost, Flash, Stealth,
+Speed, Camouflage, Random, Invincibility, and every firearm category. Gravity
+keeps its `5`-second default. Administrators can enter `-1` through the block
+property editor for any action that uses the standard cooldown system.
+
+Existing `default_properties.json` files are migrated only when a value still
+matches the previous built-in default, preserving separately customized values.
 
 <details>
 <summary>BlockMaker.json</summary>
@@ -228,6 +250,11 @@ paths with a `SizeModels` object:
     "Block": "models/blockmaker/health/block.vmdl",
     "Pole": "models/blockmaker/health/pole.vmdl"
   },
+  "Money": {
+    "Title": "Money",
+    "Block": "models/blockmaker/money/block.vmdl",
+    "Pole": "models/blockmaker/money/pole.vmdl"
+  },
   "Grenade": {
     "Title": "Grenade",
     "Block": "models/blockmaker/grenade/block.vmdl",
@@ -358,6 +385,11 @@ paths with a `SizeModels` object:
     "Block": "models/blockmaker/honey/block.vmdl",
     "Pole": "models/blockmaker/honey/pole.vmdl"
   },
+  "Barrier": {
+    "Title": "Barrier",
+    "Block": "models/blockmaker/barrier/block.vmdl",
+    "Pole": "models/blockmaker/barrier/pole.vmdl"
+  },
   "CustomBlocks": []
 }
 ```
@@ -382,8 +414,16 @@ paths with a `SizeModels` object:
     "Locked": false,
     "Builder": ""
   },
+  "Money": {
+    "Cooldown": -1,
+    "Value": 3000,
+    "Duration": 0,
+    "OnTop": true,
+    "Locked": false,
+    "Builder": ""
+  },
   "Grenade": {
-    "Cooldown": 60,
+    "Cooldown": -1,
     "Value": 0,
     "Duration": 0,
     "OnTop": true,
@@ -399,7 +439,7 @@ paths with a `SizeModels` object:
     "Builder": ""
   },
   "Frost": {
-    "Cooldown": 60,
+    "Cooldown": -1,
     "Value": 0,
     "Duration": 0,
     "OnTop": true,
@@ -407,7 +447,7 @@ paths with a `SizeModels` object:
     "Builder": ""
   },
   "Flash": {
-    "Cooldown": 60,
+    "Cooldown": -1,
     "Value": 0,
     "Duration": 0,
     "OnTop": true,
@@ -439,7 +479,7 @@ paths with a `SizeModels` object:
     "Builder": ""
   },
   "Stealth": {
-    "Cooldown": 60,
+    "Cooldown": -1,
     "Value": 0,
     "Duration": 7.5,
     "OnTop": true,
@@ -447,7 +487,7 @@ paths with a `SizeModels` object:
     "Builder": ""
   },
   "Speed": {
-    "Cooldown": 60,
+    "Cooldown": -1,
     "Value": 2,
     "Duration": 3,
     "OnTop": true,
@@ -463,7 +503,7 @@ paths with a `SizeModels` object:
     "Builder": ""
   },
   "Camouflage": {
-    "Cooldown": 60,
+    "Cooldown": -1,
     "Value": 0,
     "Duration": 10,
     "OnTop": true,
@@ -479,7 +519,7 @@ paths with a `SizeModels` object:
     "Builder": ""
   },
   "Random": {
-    "Cooldown": 60,
+    "Cooldown": -1,
     "Value": 0,
     "Duration": 0,
     "OnTop": true,
@@ -487,7 +527,7 @@ paths with a `SizeModels` object:
     "Builder": ""
   },
   "Invincibility": {
-    "Cooldown": 60,
+    "Cooldown": -1,
     "Value": 0,
     "Duration": 5,
     "OnTop": true,
@@ -559,7 +599,7 @@ paths with a `SizeModels` object:
     "Builder": ""
   },
   "Pistol": {
-    "Cooldown": 999,
+    "Cooldown": -1,
     "Value": 1,
     "Duration": 0,
     "OnTop": true,
@@ -567,7 +607,7 @@ paths with a `SizeModels` object:
     "Builder": ""
   },
   "Rifle": {
-    "Cooldown": 999,
+    "Cooldown": -1,
     "Value": 1,
     "Duration": 0,
     "OnTop": true,
@@ -575,7 +615,7 @@ paths with a `SizeModels` object:
     "Builder": ""
   },
   "Sniper": {
-    "Cooldown": 999,
+    "Cooldown": -1,
     "Value": 1,
     "Duration": 0,
     "OnTop": true,
@@ -583,7 +623,7 @@ paths with a `SizeModels` object:
     "Builder": ""
   },
   "Shotgun/Heavy": {
-    "Cooldown": 999,
+    "Cooldown": -1,
     "Value": 1,
     "Duration": 0,
     "OnTop": true,
@@ -591,9 +631,17 @@ paths with a `SizeModels` object:
     "Builder": ""
   },
   "SMG": {
-    "Cooldown": 999,
+    "Cooldown": -1,
     "Value": 1,
     "Duration": 0,
+    "OnTop": true,
+    "Locked": false,
+    "Builder": ""
+  },
+  "Barrier": {
+    "Cooldown": 2,
+    "Value": 0,
+    "Duration": 0.01,
     "OnTop": true,
     "Locked": false,
     "Builder": ""
