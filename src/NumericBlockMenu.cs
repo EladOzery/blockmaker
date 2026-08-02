@@ -335,7 +335,13 @@ public static class NumericBlockMenu
 
     private static void SelectBlock(Session session, string blockType)
     {
-        Building.EnsureBuilder(session.Player).BlockType = blockType;
+        var builder = Building.EnsureBuilder(session.Player);
+        bool wasMoney = string.Equals(builder.BlockType, Blocks.Models.Data.Money.Title, StringComparison.OrdinalIgnoreCase);
+        builder.BlockType = blockType;
+        if (string.Equals(blockType, Blocks.Models.Data.Money.Title, StringComparison.OrdinalIgnoreCase))
+            builder.BlockTeam = "T";
+        else if (wasMoney)
+            builder.BlockTeam = "Both";
         Utils.PrintToChat(session.Player, $"Selected Type: {ChatColors.White}{blockType}");
         session.Open(Screen.Main);
     }
