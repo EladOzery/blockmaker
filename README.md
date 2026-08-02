@@ -14,18 +14,16 @@
 	<a href="https://github.com/sponsors/exkludera" target="_blank"><img src="https://img.shields.io/badge/Sponsor-696969?style=for-the-badge&logo=github&logoColor=white" alt="GitHub Sponsor" /></a>
 </div>
 
-> [!NOTE]
-> thanks to [UgurhanK/BaseBuilder](https://github.com/UgurhanK/BaseBuilder) for the code base
->
-> inspired by [BlockBuilder by x3ro](https://forums.alliedmods.net/showthread.php?t=258329)
-
-> block managing can be done within the building menu /bm or commands
+> [!NOTE]>
+> inspired by CS1.6 Blockmaker and exkludera's plugins, edited, fixed and added stuff of my own.
+> 
+> "/bm" in chat to open BM menu
 >
 > hold USE to grab a block and look around to move it; JUMP brings it closer and DUCK moves it farther away
 >
 > while holding a block, MOUSE1 duplicates it and transfers the hold to the duplicate; MOUSE2 deletes it
 >
-> hold RELOAD button and move your mouse to rotate the block
+> hold RELOAD button and move your mouse to freely rotate the block
 
 ## Changes in this fork (0.2.7)
 
